@@ -20,7 +20,9 @@ package Game.Tiles
 				case 0x333333:
 					return new TileGround(3);
 				case 0x0094FF:
-					return new TileWater();
+					return new TileWater(0);
+				case 0x7FC9FF:
+					return new TileWater(1);
 				default:
 					return null;
 			}

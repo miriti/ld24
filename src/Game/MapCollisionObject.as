@@ -12,8 +12,8 @@ package Game
 		protected var _pos:Point = new Point();
 		public var onCollision:Function = null;
 		
-		private var _width:Number;
-		private var _height:Number;
+		protected var _width:Number;
+		protected var _height:Number;
 		private var mp:GameMap;
 		
 		public static const SIDE_LEFT:int = 0;

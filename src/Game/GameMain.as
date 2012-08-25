@@ -20,7 +20,9 @@ package Game
 		public function GameMain()
 		{
 			super();
+			
 			addChild(new Bitmap(_renderSurface));
+			addChild(new GameHUD());
 			
 			addEventListener(Event.ENTER_FRAME, onRender);
 			addEventListener(KeyboardEvent.KEY_DOWN, Input.onKeyDown);

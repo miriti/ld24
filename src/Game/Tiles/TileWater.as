@@ -8,9 +8,11 @@ package Game.Tiles
 	public class TileWater extends Tile
 	{
 		
-		public function TileWater()
+		public function TileWater(variant:int)
 		{
-			super(TileSet.getTileBitmap(1, 0));
+			super(TileSet.getTileBitmap(1, variant));
+			_gravity = 0;
+			_friction = 10;
 		}
 	
 	}

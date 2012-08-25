@@ -3,6 +3,7 @@ package Game
 	import flash.display.BitmapData;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import Game.Mobs.Dolphin;
 	import Game.Mobs.Mob;
 	import Game.Mobs.Player;
 	import Game.Tiles.Tile;
@@ -42,7 +43,20 @@ package Game
 				_Instance = this;
 				_mobs = new Vector.<Mob>();
 				_player = new Player();
+				_player.pos.x = 0;
+				_player.pos.y = 25 * Tile.HEIGHT;
+				
+				initObjects();
 			}
+		}
+		
+		private function initObjects():void
+		{
+			var _testDolphin:Dolphin = new Dolphin();
+			_testDolphin.pos.x = 15 * Tile.WIDTH;
+			_testDolphin.pos.y = 25 * Tile.HEIGHT;
+			
+			_mobs.push(_testDolphin);
 		}
 		
 		public function getCell(x:Number, y:Number):Point
@@ -69,12 +83,17 @@ package Game
 		
 		public function getTile(x:int, y:int):Tile
 		{
-			if ((x >= 0) && (x < _tileData.length) && (y >= 0) && (y < _tileData[x].lengh))
+			if ((x >= 0) && (x < _tileData.length) && (y >= 0) && (y < _tileData[x].length))
 			{
 				return _tileData[x][y];
 			}
 			else
 				return null;
+		}
+		
+		public function getTilePoint(p:Point):Tile
+		{
+			return getTile(p.x, p.y);
 		}
 		
 		public function init(data:BitmapData):void
@@ -127,7 +146,13 @@ package Game
 			{
 				var m:Mob = _mobs[k];
 				var mx:Matrix = new Matrix();
-				mx.translate(m.pos.x - _shiftX, m.pos.y - _shiftY);
+				if (m.flipHorisontal)
+				{
+					mx.translate(-m.width, 0);
+					mx.scale(-1, 1);
+				}
+				
+				mx.translate(m.x - _shiftX, m.y - _shiftY);
 				_bitmapResult.draw(m.render(), mx);
 			}
 			return _bitmapResult;
