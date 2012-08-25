@@ -13,6 +13,13 @@ package Game
 		private static var _keysPressed:Array = new Array(256);
 		private static var _mouseDown:Boolean = false;
 		
+		private static var hooks:Vector.<Function> = new Vector.<Function>();
+		
+		public static function addKeyboardHook(hook:Function):void
+		{
+			hooks.push(hook);
+		}
+		
 		public static function onMouseDown(e:MouseEvent):void
 		{
 			_mouseDown = true;
@@ -26,6 +33,10 @@ package Game
 		public static function onKeyDown(e:KeyboardEvent):void
 		{
 			_keysPressed[e.keyCode] = true;
+			for (var i:int = 0; i < hooks.length; i++)
+			{
+				hooks[i](e.keyCode);
+			}
 		}
 		
 		public static function onKeyUp(e:KeyboardEvent):void

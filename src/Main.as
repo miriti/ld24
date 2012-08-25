@@ -23,11 +23,17 @@ package
 		private function init(e:Event = null):void 
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
+			addEventListener(Event.DEACTIVATE, onDeactivate);
 			addEventListener(Event.ACTIVATE, onActivate);
 			addEventListener(MouseEvent.CLICK, onClick);
 			
 			addChild(_gameMain);
 			stage.focus = _gameMain;
+		}
+		
+		private function onDeactivate(e:Event):void 
+		{
+			GameMain.pause = false;
 		}
 		
 		private function onClick(e:MouseEvent):void 

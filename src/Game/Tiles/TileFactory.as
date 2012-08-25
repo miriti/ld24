@@ -23,6 +23,12 @@ package Game.Tiles
 					return new TileWater(0);
 				case 0x7FC9FF:
 					return new TileWater(1);
+				case 0x99D4FF:
+					return new TileWater(2);
+				case 0xB2DFFF:
+					return new TileWater(3);
+				case 0xCCEAFF:
+					return new TileWater(4);
 				default:
 					return null;
 			}

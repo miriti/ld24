@@ -52,12 +52,20 @@ package Game.Mobs
 		public var skillJumping:Number = 0;
 		public var skillFlying:Number = 0;
 		
+		private var _center:Point = new Point();
+		
 		private var m:GameMap = GameMap.Instance;
 		
 		public function Mob(mw:int, mh:int)
 		{
 			super(mw, mh);
 			onCollision = collision;
+		}
+		
+		public function setPos(nx:Number, ny:Number):Point
+		{
+			_pos.setTo(nx, ny);
+			return _pos;
 		}
 		
 		private function collision(t:Tile, side:int):void
@@ -182,6 +190,9 @@ package Game.Mobs
 			{
 				switch (_mode)
 				{
+					case(MODE_GROUND):
+						ground(deltaTime);
+						break;
 					case(MODE_FLYING):
 						flying(deltaTime);
 						break;
@@ -267,6 +278,16 @@ package Game.Mobs
 			if (value > _healthMax)
 				value = _healthMax;
 			_health = value;
+		}
+		
+		public function get center():Point
+		{
+			return _center;
+		}
+		
+		public function set center(value:Point):void
+		{
+			_center = value;
 		}
 	}
 

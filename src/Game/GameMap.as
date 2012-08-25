@@ -4,8 +4,11 @@ package Game
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import Game.Mobs.Dolphin;
+	import Game.Mobs.Duck;
 	import Game.Mobs.Mob;
 	import Game.Mobs.Player;
+	import Game.Mobs.Walking;
+	import Game.Objects.YellowThing;
 	import Game.Tiles.Tile;
 	import Game.Tiles.TileFactory;
 	import Game.Tiles.TileSolid;
@@ -33,6 +36,7 @@ package Game
 		
 		private var _mobs:Vector.<Mob>;
 		private var _player:Player;
+		private var _objectsData:Array;
 		
 		public function GameMap()
 		{
@@ -43,8 +47,7 @@ package Game
 				_Instance = this;
 				_mobs = new Vector.<Mob>();
 				_player = new Player();
-				_player.pos.x = 0;
-				_player.pos.y = 25 * Tile.HEIGHT;
+				_player.setPos(10 * Tile.WIDTH, 25 * Tile.HEIGHT);
 				
 				initObjects();
 			}
@@ -52,11 +55,23 @@ package Game
 		
 		private function initObjects():void
 		{
-			var _testDolphin:Dolphin = new Dolphin();
-			_testDolphin.pos.x = 15 * Tile.WIDTH;
-			_testDolphin.pos.y = 25 * Tile.HEIGHT;
-			
-			_mobs.push(_testDolphin);
+			var _testDuck:Duck = new Duck();
+			_testDuck.setPos(25 * Tile.WIDTH, 22 * Tile.HEIGHT);
+			_mobs.push(_testDuck);
+		}
+		
+		public function addMob(m:Mob):void
+		{
+			_mobs.push(m);
+		}
+		
+		public function delMob(m:Mob):void
+		{
+			var ind:int;
+			if ((ind = _mobs.indexOf(m)) != -1)
+			{
+				_mobs.splice(ind, 1);
+			}
 		}
 		
 		public function getCell(x:Number, y:Number):Point
@@ -114,6 +129,37 @@ package Game
 			_mobs.push(_player);
 		}
 		
+		public function init2(data:BitmapData):void
+		{
+			if ((data.width == _tilesX) && (data.height == _tilesY))
+			{
+				var _yellows:int = 0;
+				
+				_objectsData = new Array(_tilesX);
+				for (var i:int = 0; i < _tilesX; i++)
+				{
+					_objectsData[i] = new Array(_tilesY);
+					for (var j:int = 0; j < _tilesY; j++)
+					{
+						var n:IRenderableObject = MapObjectFactory.getObject(data.getPixel(i, j));
+						_objectsData[i][j] = n;
+						if (n is Mob)
+						{
+							(n as Mob).setPos(i * Tile.WIDTH, j * Tile.HEIGHT);
+							addMob(n as Mob);
+						}
+						if (n is YellowThing) _yellows++;
+					}
+				}
+				
+				GameHUD.setYellowsCount(_yellows);
+			}
+			else
+			{
+				throw new Error("Invalid layer 2 size!");
+			}
+		}
+		
 		/* INTERFACE Game.IRenderableObject */
 		
 		public function render():BitmapData
@@ -146,6 +192,9 @@ package Game
 			{
 				var m:Mob = _mobs[k];
 				var mx:Matrix = new Matrix();
+				
+				mx.translate(m.center.x, m.center.y);
+				
 				if (m.flipHorisontal)
 				{
 					mx.translate(-m.width, 0);
@@ -155,6 +204,7 @@ package Game
 				mx.translate(m.x - _shiftX, m.y - _shiftY);
 				_bitmapResult.draw(m.render(), mx);
 			}
+			
 			return _bitmapResult;
 		}
 		
@@ -211,7 +261,10 @@ package Game
 				new GameMap();
 			return _Instance;
 		}
-	
+		
+		public function get player():Player
+		{
+			return _player;
+		}
 	}
-
 }
