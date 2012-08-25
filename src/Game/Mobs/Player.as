@@ -13,8 +13,13 @@ package Game.Mobs
 		
 		public function Player()
 		{
-			_animations.push(new GameAnimSprite((new Assets.mobTest() as Bitmap).bitmapData, new Point(32, 32)));
+			_animations.push(new GameAnimSprite((new Assets.mobTest() as Bitmap).bitmapData, new Point(32, 32), 500));
 			_currentAnimation = 0;
+		}
+		
+		override public function update(deltaTime:Number):void 
+		{
+			super.update(deltaTime);
 		}
 	
 	}

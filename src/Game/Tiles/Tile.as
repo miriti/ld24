@@ -13,6 +13,7 @@ package Game.Tiles
 		public static const HEIGHT:int = 32;
 		
 		protected var _tileBitmap:BitmapData;
+		protected var _fricton:Number;
 		
 		public function Tile(tileBitmap:BitmapData)
 		{

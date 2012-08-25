@@ -17,6 +17,7 @@ package Game
 		protected var _frameMin:int = 0;
 		protected var _frameTimePassed:Number = 0;
 		protected var _frameTime:Number;
+		protected var _frameSize:Point;
 		
 		public function GameAnimSprite(animBitmap:BitmapData, frameSize:Point = null, frameTime:Number = 100)
 		{
@@ -42,12 +43,23 @@ package Game
 					}
 					
 					_frameMax = _frames.length - 1;
+					_frameSize = frameSize;
 				}
 				else
 				{
 					throw new Error("Bitmap have invalid size");
 				}
 			}
+		}
+		
+		public function get width():Number
+		{
+			return _frameSize.x;
+		}
+		
+		public function get height():Number
+		{
+			return _frameSize.y;
 		}
 		
 		/* INTERFACE Game.IRenderableObject */

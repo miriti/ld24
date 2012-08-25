@@ -7,9 +7,9 @@ package Game.Tiles
 	public class TileGround extends TileSolid 
 	{
 		
-		public function TileGround() 
+		public function TileGround(variant:int = 0) 
 		{
-			super(TileSet.getTileBitmap(0, 0));
+			super(TileSet.getTileBitmap(0, variant));
 		}
 		
 	}

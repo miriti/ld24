@@ -1,6 +1,7 @@
 package Game
 {
 	import flash.display.BitmapData;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import Game.Mobs.Mob;
 	import Game.Mobs.Player;
@@ -29,13 +30,24 @@ package Game
 		private var _countTileWidth:int = 21;
 		private var _countTileHeigh:int = 16;
 		
-		private var _mobs:Vector.<Mob> = new Vector.<Mob>();
-		private var _player:Player = new Player();
+		private var _mobs:Vector.<Mob>;
+		private var _player:Player;
 		
 		public function GameMap()
 		{
 			if (_Instance != null)
 				throw new Error("Do not use constructor! Use GameMap.Instance to get an instance");
+			else
+			{
+				_Instance = this;
+				_mobs = new Vector.<Mob>();
+				_player = new Player();
+			}
+		}
+		
+		public function getCell(x:Number, y:Number):Point
+		{
+			return new Point(Math.floor(x / Tile.WIDTH), Math.floor(y / Tile.HEIGHT));
 		}
 		
 		public function canPass(x:int, y:int):Boolean
@@ -46,9 +58,23 @@ package Game
 			}
 			else
 			{
-				trace(x, y, 'out');
 				return false;
 			}
+		}
+		
+		public function canPassPoint(p:Point):Boolean
+		{
+			return canPass(p.x, p.y);
+		}
+		
+		public function getTile(x:int, y:int):Tile
+		{
+			if ((x >= 0) && (x < _tileData.length) && (y >= 0) && (y < _tileData[x].lengh))
+			{
+				return _tileData[x][y];
+			}
+			else
+				return null;
 		}
 		
 		public function init(data:BitmapData):void
@@ -100,25 +126,15 @@ package Game
 			for (var k:int = 0; k < _mobs.length; k++)
 			{
 				var m:Mob = _mobs[k];
-				_bitmapResult.copyPixels(m.render(), m.render().rect, new Point(m.pos.x - _shiftX, m.pos.y - _shiftY));
+				var mx:Matrix = new Matrix();
+				mx.translate(m.pos.x - _shiftX, m.pos.y - _shiftY);
+				_bitmapResult.draw(m.render(), mx);
 			}
 			return _bitmapResult;
 		}
 		
 		public function update(deltaTime:Number):void
 		{
-			if (Input.isRight())
-				_player.x += 5;
-			
-			if (Input.isLeft())
-				_player.x -= 5;
-			
-			if (Input.isUp())
-				_player.y -= 5;
-			
-			if (Input.isDown())
-				_player.y += 5;
-			
 			shiftX = _player.pos.x - 320;
 			shiftY = _player.pos.y - 240;
 			
@@ -167,7 +183,7 @@ package Game
 		static public function get Instance():GameMap
 		{
 			if (_Instance == null)
-				_Instance = new GameMap();
+				new GameMap();
 			return _Instance;
 		}
 	
