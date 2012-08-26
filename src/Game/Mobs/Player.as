@@ -43,7 +43,6 @@ package Game.Mobs
 			_skillWalking = 0;
 			_skillAirBreathing = 0;
 			_skillFlying = 0;
-			_skillAirBreathing = 0;
 			
 			_useWorldConsts = true;
 			

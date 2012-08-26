@@ -27,7 +27,7 @@ package Game.Mobs
 		override protected function dnaExtracting():void
 		{
 			GameMap.Instance.delMob(this);
-			GameMap.Instance.player.skillFlying += Math.floor(Math.random() * 5);
+			GameMap.Instance.player.skillFlying += Math.floor(Math.random() * 2);
 			super.dnaExtracting();
 		}
 		
