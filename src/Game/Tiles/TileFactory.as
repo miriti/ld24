@@ -11,7 +11,7 @@ package Game.Tiles
 		{
 			switch (pixel)
 			{
-				case 0:
+				case 0x000000:
 					return new TileGround(0);
 				case 0x111111:
 					return new TileGround(1);
@@ -19,6 +19,12 @@ package Game.Tiles
 					return new TileGround(2);
 				case 0x333333:
 					return new TileGround(3);
+				case 0x444444:
+					return new TileGround(4);
+				case 0x555555:
+					return new TileGround(5);
+				case 0x666666:
+					return new TileGround(6);
 				case 0x0094FF:
 					return new TileWater(0);
 				case 0x7FC9FF:

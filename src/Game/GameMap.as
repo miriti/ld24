@@ -1,13 +1,12 @@
 package Game
 {
+	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
-	import Game.Mobs.Dolphin;
-	import Game.Mobs.Duck;
+	import flash.geom.Rectangle;
 	import Game.Mobs.Mob;
 	import Game.Mobs.Player;
-	import Game.Mobs.Walking;
 	import Game.Objects.YellowThing;
 	import Game.Tiles.Tile;
 	import Game.Tiles.TileFactory;
@@ -20,6 +19,8 @@ package Game
 	public class GameMap implements IRenderableObject
 	{
 		private static var _Instance:GameMap;
+		
+		private var _bmpBack:BitmapData = (new Assets.bmpBack() as Bitmap).bitmapData;
 		
 		private var _bitmapResult:BitmapData = new BitmapData(640, 480, true, 0x00000000);
 		private var _tileData:Array;
@@ -37,6 +38,7 @@ package Game
 		private var _mobs:Vector.<Mob>;
 		private var _player:Player;
 		private var _objectsData:Array;
+		private var _backMatrix:Matrix = new Matrix();
 		
 		public function GameMap()
 		{
@@ -46,18 +48,7 @@ package Game
 			{
 				_Instance = this;
 				_mobs = new Vector.<Mob>();
-				_player = new Player();
-				_player.setPos(10 * Tile.WIDTH, 25 * Tile.HEIGHT);
-				
-				initObjects();
 			}
-		}
-		
-		private function initObjects():void
-		{
-			var _testDuck:Duck = new Duck();
-			_testDuck.setPos(25 * Tile.WIDTH, 22 * Tile.HEIGHT);
-			_mobs.push(_testDuck);
 		}
 		
 		public function addMob(m:Mob):void
@@ -125,8 +116,6 @@ package Game
 					_tileData[i][j] = TileFactory.getTile(data.getPixel(i, j));
 				}
 			}
-			
-			_mobs.push(_player);
 		}
 		
 		public function init2(data:BitmapData):void
@@ -142,17 +131,24 @@ package Game
 					for (var j:int = 0; j < _tilesY; j++)
 					{
 						var n:IRenderableObject = MapObjectFactory.getObject(data.getPixel(i, j));
-						_objectsData[i][j] = n;
-						if (n is Mob)
+						if (n != null)
 						{
-							(n as Mob).setPos(i * Tile.WIDTH, j * Tile.HEIGHT);
-							addMob(n as Mob);
+							_objectsData[i][j] = n;
+							if (n is Mob)
+							{
+								(n as Mob).setPos(i * Tile.WIDTH, j * Tile.HEIGHT);
+								addMob(n as Mob);
+							}
+							if (n is YellowThing)
+								_yellows++;
+							if (n is Player)
+								_player = n as Player;
 						}
-						if (n is YellowThing) _yellows++;
 					}
 				}
 				
 				GameHUD.setYellowsCount(_yellows);
+				GameHUD.showHints();
 			}
 			else
 			{
@@ -165,6 +161,11 @@ package Game
 		public function render():BitmapData
 		{
 			_bitmapResult.fillRect(_bitmapResult.rect, 0x00000000);
+			/*var mapWidth:Number = _tilesX * 32;
+			var mapHeigh:Number = _tilesY * 32;
+			
+			_backMatrix.scale(mapWidth / _bmpBack.width, mapHeigh / _bmpBack.height);
+			_bitmapResult.draw(_bmpBack, _backMatrix);*/
 			
 			if (_tileData != null)
 			{
@@ -188,21 +189,31 @@ package Game
 				}
 			}
 			
+			var screenRect:Rectangle = new Rectangle(_shiftX, _shiftY, 640, 480);
+			
 			for (var k:int = 0; k < _mobs.length; k++)
 			{
 				var m:Mob = _mobs[k];
-				var mx:Matrix = new Matrix();
-				
-				mx.translate(m.center.x, m.center.y);
-				
-				if (m.flipHorisontal)
+				if (screenRect.intersects(m.rect))
 				{
-					mx.translate(-m.width, 0);
-					mx.scale(-1, 1);
+					var mx:Matrix = new Matrix();
+					
+					mx.translate(m.center.x, m.center.y);
+					if (m.rotation != 0)
+					{
+						trace(m.rotation);
+						mx.rotate(m.rotation);
+					}
+					
+					if (m.flipHorisontal)
+					{
+						mx.translate(-m.width, 0);
+						mx.scale(-1, 1);
+					}
+					
+					mx.translate(m.x - _shiftX, m.y - _shiftY);
+					_bitmapResult.draw(m.render(), mx);
 				}
-				
-				mx.translate(m.x - _shiftX, m.y - _shiftY);
-				_bitmapResult.draw(m.render(), mx);
 			}
 			
 			return _bitmapResult;

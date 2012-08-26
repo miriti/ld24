@@ -21,13 +21,21 @@ package Game
 		
 		public static var pause:Boolean = false;
 		
+		private var _surfaceBmp:Bitmap;
+		private var _gameHUD:GameHUD;
+		
 		public function GameMain()
 		{
 			super();
 			Inst = this;
 			
-			addChild(new Bitmap(_renderSurface));
-			addChild(new GameHUD());
+			new Snd();
+			
+			_surfaceBmp = new Bitmap(_renderSurface);
+			_gameHUD = new GameHUD();
+			
+			addChild(_surfaceBmp);
+			addChild(_gameHUD);
 			
 			addEventListener(Event.ENTER_FRAME, onRender);
 			addEventListener(KeyboardEvent.KEY_DOWN, Input.onKeyDown);
@@ -40,11 +48,23 @@ package Game
 			focusRect = false;
 		}
 		
+		public function gameOver():void
+		{
+			removeChild(_surfaceBmp);
+			removeChild(_gameHUD);
+			removeEventListener(Event.ENTER_FRAME, onRender);
+			
+			addChild(new Assets.bmpGameOver());
+		}
+		
 		private function onRender(e:Event):void
 		{
 			var _time:Number = new Date().getTime();
 			if (!pause)
+			{
 				_map.update(_time - _lastTime);
+				GameHUD.update();
+			}
 			_lastTime = _time;
 			
 			_renderSurface.fillRect(_renderSurface.rect, 0x000000);

@@ -3,12 +3,14 @@ package Game.Mobs
 	import flash.display.BitmapData;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	import Game.GameAnimSprite;
 	import Game.GameMain;
 	import Game.GameMap;
 	import Game.Input;
 	import Game.IRenderableObject;
 	import Game.MapCollisionObject;
+	import Game.Snd;
 	import Game.Tiles.Tile;
 	import Game.Tiles.TileGround;
 	import Game.Tiles.TileWater;
@@ -28,8 +30,10 @@ package Game.Mobs
 		protected var _controlled:Boolean = false;
 		
 		private var _matrix:Matrix = new Matrix();
+		private var _rotation:Number = 0;
+		
 		static private const MAX_FALL_SPEED:Number = 10;
-		static public const X_SPEED:Number = 7;
+		static public const X_SPEED:Number = 3;
 		static public const X_SPEED_MAX:Number = 5;
 		static public const JUMP_POWER:Number = 7;
 		
@@ -45,21 +49,29 @@ package Game.Mobs
 		protected var _flipHorisontal:Boolean = false;
 		protected var _flipVertical:Boolean = false;
 		
-		public var skillSwimming:Number = 10;
-		public var skillWaterbreathing:Number = 10;
-		public var skillAirBreathing:Number = 0;
-		public var skillWalking:Number = 0;
-		public var skillJumping:Number = 0;
-		public var skillFlying:Number = 0;
+		protected var _rect:Rectangle = new Rectangle();
+		
+		protected var _skillSwimming:Number = 10;
+		protected var _skillWaterbreathing:Number = 10;
+		protected var _skillAirBreathing:Number = 0;
+		protected var _skillWalking:Number = 0;
+		protected var _skillJumping:Number = 1;
+		protected var _skillFlying:Number = 0;
 		
 		private var _center:Point = new Point();
 		
 		private var m:GameMap = GameMap.Instance;
+		protected var _useWorldConsts:Boolean = false;
 		
 		public function Mob(mw:int, mh:int)
 		{
 			super(mw, mh);
 			onCollision = collision;
+		}
+		
+		protected function dnaExtracting():void
+		{
+		
 		}
 		
 		public function setPos(nx:Number, ny:Number):Point
@@ -84,33 +96,57 @@ package Game.Mobs
 				_inJump = false;
 			}
 			else if (side == SIDE_TOP)
+			{
 				_ySpeed = 0;
+			}
+			else if ((side == SIDE_LEFT) || (side == SIDE_RIGHT))
+			{
+				_xSpeed = 0;
+			}
+		}
+		
+		protected function jump():void
+		{
+			if (!_inJump)
+			{
+				_ySpeed = -(JUMP_POWER + (_skillJumping / 2));
+				_inJump = true;
+			}
 		}
 		
 		public function ground(dt:Number):void
 		{
-			if (skillWalking > 0)
+			if (_skillWalking >= 5)
 			{
 				if (Input.isLeft())
-					x -= X_SPEED;
+					_xSpeed -= (dt / 1000) * _skillWalking * 1.5;
 				if (Input.isRight())
-					x += X_SPEED;
+					_xSpeed += (dt / 1000) * _skillWalking * 1.5;
 				
-				if ((Input.isUp()) && (!_inJump))
+				if (Input.isUp())
 				{
-					_ySpeed = -JUMP_POWER;
-					_inJump = true;
+					jump();
 				}
 			}
 			else
 			{
 				health -= 0.5;
 			}
+			
+			var t:Tile = m.getTilePoint(m.getCell(_pos.x, _pos.y));
+			if (t != null)
+			{
+				if (t is TileWater)
+				{
+					_mode = MODE_SWIMMING;
+					Snd.I.play("splash");
+				}
+			}
 		}
 		
 		public function flying(dt:Number):void
 		{
-			if (skillFlying > 0)
+			if (_skillFlying > 0)
 			{
 				if (Input.isLeft())
 					_xSpeed -= (dt / 1000) * 25;
@@ -123,30 +159,36 @@ package Game.Mobs
 			}
 			else
 			{
-				health -= 0.2;
+				if (_skillAirBreathing < 5)
+					health -= 1 * ((5 - _skillAirBreathing) / 5);
+				if (_skillAirBreathing > 10)
+					health += 0.01 * (dt / 33);
 			}
 			
 			var t:Tile = m.getTilePoint(m.getCell(_pos.x, _pos.y));
 			if (t != null)
 			{
 				if (t is TileWater)
+				{
 					_mode = MODE_SWIMMING;
+					Snd.I.play("splash");
+				}
 			}
 		}
 		
 		public function swimming(dt:Number):void
 		{
-			if (skillSwimming > 0)
+			if (_skillSwimming > 0)
 			{
 				if (Input.isLeft())
-					_xSpeed -= (dt / 1000) * 15;
+					_xSpeed -= (dt / 1000) * _skillSwimming * 1.5;
 				if (Input.isRight())
-					_xSpeed += (dt / 1000) * 15;
+					_xSpeed += (dt / 1000) * _skillSwimming * 1.5;
 				
 				if (Input.isUp())
-					_ySpeed -= (dt / 1000) * 15;
+					_ySpeed -= (dt / 1000) * _skillSwimming;
 				if (Input.isDown())
-					_ySpeed += (dt / 1000) * 15;
+					_ySpeed += (dt / 1000) * _skillSwimming;
 			}
 			else
 			{
@@ -157,7 +199,13 @@ package Game.Mobs
 			if (!(t is TileWater))
 			{
 				if (t == null)
-					_mode = MODE_FLYING;
+				{
+					_mode = MODE_GROUND;
+					_inJump = true;
+					Snd.I.play("splash");
+				}
+				else if (t is TileGround)
+					_mode = MODE_GROUND;
 			}
 		}
 		
@@ -186,6 +234,11 @@ package Game.Mobs
 			if (_currentAnimation != -1)
 				_animations[_currentAnimation].update(deltaTime);
 			
+			if ((GameMap.Instance.player.dnaStrike.acting) && (GameMap.Instance.player.dnaStrike.rect.intersects(rect)))
+			{
+				dnaExtracting();
+			}
+			
 			if (_controlled)
 			{
 				switch (_mode)
@@ -200,10 +253,12 @@ package Game.Mobs
 						swimming(deltaTime);
 						break;
 				}
-				
+			}
+			if (_useWorldConsts)
+			{
 				var t:Tile = m.getTilePoint(m.getCell(_pos.x, _pos.y));
 				var g:Number = t != null ? t.gravity : Tile.AIR_GRAVITY;
-				var f:Number = t != null ? t.friction : Tile.AIR_FRICTION;
+				var f:Number = t != null ? t.friction : _mode == MODE_GROUND ? TileGround.GROUND_FRICTION : Tile.AIR_FRICTION;
 				
 				if (Math.abs(_xSpeed) > X_SPEED_MAX)
 				{
@@ -277,6 +332,9 @@ package Game.Mobs
 				value = 0;
 			if (value > _healthMax)
 				value = _healthMax;
+			
+			if (value < _health)
+				Snd.I.play("hurt");
 			_health = value;
 		}
 		
@@ -288,6 +346,92 @@ package Game.Mobs
 		public function set center(value:Point):void
 		{
 			_center = value;
+		}
+		
+		public function get rect():Rectangle
+		{
+			_rect.setTo(x + _center.x, y + _center.y, width, height);
+			return _rect;
+		}
+		
+		public function get rotation():Number
+		{
+			return _rotation;
+		}
+		
+		public function set rotation(value:Number):void
+		{
+			_rotation = value;
+		}
+		
+		public function set flipHorisontal(value:Boolean):void
+		{
+			_flipHorisontal = value;
+		}
+		
+		public function set flipVertical(value:Boolean):void
+		{
+			_flipVertical = value;
+		}
+		
+		public function get skillSwimming():Number
+		{
+			return _skillSwimming;
+		}
+		
+		public function set skillSwimming(value:Number):void
+		{
+			_skillSwimming = value;
+		}
+		
+		public function get skillWaterbreathing():Number
+		{
+			return _skillWaterbreathing;
+		}
+		
+		public function set skillWaterbreathing(value:Number):void
+		{
+			_skillWaterbreathing = value;
+		}
+		
+		public function get skillAirBreathing():Number
+		{
+			return _skillAirBreathing;
+		}
+		
+		public function set skillAirBreathing(value:Number):void
+		{
+			_skillAirBreathing = value;
+		}
+		
+		public function get skillWalking():Number
+		{
+			return _skillWalking;
+		}
+		
+		public function set skillWalking(value:Number):void
+		{
+			_skillWalking = value;
+		}
+		
+		public function get skillJumping():Number
+		{
+			return _skillJumping;
+		}
+		
+		public function set skillJumping(value:Number):void
+		{
+			_skillJumping = value;
+		}
+		
+		public function get skillFlying():Number
+		{
+			return _skillFlying;
+		}
+		
+		public function set skillFlying(value:Number):void
+		{
+			_skillFlying = value;
 		}
 	}
 

@@ -62,6 +62,26 @@ package Game
 			return _frameSize.y;
 		}
 		
+		public function get frameMax():int 
+		{
+			return _frameMax;
+		}
+		
+		public function set frameMax(value:int):void 
+		{
+			_frameMax = value;
+		}
+		
+		public function get frameMin():int 
+		{
+			return _frameMin;
+		}
+		
+		public function set frameMin(value:int):void 
+		{
+			_frameMin = value;
+		}
+		
 		/* INTERFACE Game.IRenderableObject */
 		
 		public function render():BitmapData

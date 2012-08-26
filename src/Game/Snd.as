@@ -16,7 +16,13 @@ package Game
 		
 		public function Snd()
 		{
+			_I = this;
 			_sndColl["pickup"] = new Assets.sndPickup();
+			_sndColl["pickup-2"] = new Assets.sndPickup2();
+			_sndColl["splash"] = new Assets.sndSplash();
+			_sndColl["msg"] = new Assets.sndMsg();
+			_sndColl["dna-hit"] = new Assets.sndDnaHit();
+			_sndColl["hurt"] = new Assets.sndHurt();
 		}
 		
 		public function play(name:String, vol:Number = 1, pan:Number = 0):void
@@ -27,7 +33,7 @@ package Game
 		static public function get I():Snd
 		{
 			if (_I == null)
-				_I = new Snd();
+				new Snd();
 			return _I;
 		}
 	

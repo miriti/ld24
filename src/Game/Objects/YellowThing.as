@@ -18,8 +18,8 @@ package Game.Objects
 		
 		public function YellowThing()
 		{
-			super(32, 32);
-			_animations.push(new GameAnimSprite((new Assets.objYellowThing() as Bitmap).bitmapData, new Point(32, 32)));
+			super(16, 16);
+			_animations.push(new GameAnimSprite((new Assets.objYellowThing() as Bitmap).bitmapData, new Point(width, height)));
 			_currentAnimation = 0;
 		}
 		
@@ -27,7 +27,7 @@ package Game.Objects
 		{
 			var p:Player = GameMap.Instance.player;
 			
-			if ((Math.abs(y - p.y) <= 16) && (Math.abs(x - p.x) <= 16))
+			if (rect.intersects(p.rect))
 			{
 				GameMap.Instance.delMob(this);
 				Snd.I.play("pickup");

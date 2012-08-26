@@ -23,6 +23,18 @@ package Game.Mobs
 			center.y = 16;
 		}
 		
+		override protected function dnaExtracting():void
+		{
+			GameMap.Instance.delMob(this);
+			GameMap.Instance.player.skillAirBreathing += 3;
+			GameMap.Instance.player.skillWalking += 2.5;
+			
+			if (GameMap.Instance.player.skillWalking > 7)
+				GameMap.Instance.player.skillFlying = Math.floor(Math.random() * 2);
+			
+			super.dnaExtracting();
+		}
+		
 		override public function setPos(nx:Number, ny:Number):Point
 		{
 			_backX = nx;
@@ -40,31 +52,18 @@ package Game.Mobs
 			{
 				if (p.x < x)
 				{
-					if ((x - p.x <= 32) && (Math.abs(y - p.y) <= 32))
-					{
-						_interact();
-					}
-					else
-					{
-						_flipHorisontal = true;
-						_xSpeed += DUCK_ACC * (deltaTime / 1000);
-						if (_xSpeed > X_SPEED_MAX)
-							_xSpeed = X_SPEED_MAX;
-					}
+					_flipHorisontal = true;
+					_xSpeed += DUCK_ACC * (deltaTime / 1000);
+					if (_xSpeed > X_SPEED_MAX)
+						_xSpeed = X_SPEED_MAX;
 				}
 				if (p.x > x)
 				{
-					if ((p.x - x <= 32) && (Math.abs(y - p.y) <= 32))
-					{
-						_interact();
-					}
-					else
-					{
-						_flipHorisontal = false;
-						_xSpeed -= DUCK_ACC * (deltaTime / 1000);
-						if (_xSpeed < -X_SPEED_MAX)
-							_xSpeed = -X_SPEED_MAX;
-					}
+					
+					_flipHorisontal = false;
+					_xSpeed -= DUCK_ACC * (deltaTime / 1000);
+					if (_xSpeed < -X_SPEED_MAX)
+						_xSpeed = -X_SPEED_MAX;
 				}
 			}
 			else

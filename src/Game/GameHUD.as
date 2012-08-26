@@ -1,10 +1,12 @@
 package Game
 {
 	import flash.display.Sprite;
+	import flash.events.Event;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import flash.ui.Keyboard;
+	import Game.Mobs.Player;
 	
 	/**
 	 * ...
@@ -14,60 +16,86 @@ package Game
 	{
 		static private var _healthTitle:TextField = new TextField();
 		static private var _yellowsTitle:TextField = new TextField();
-		static private var _format:TextFormat = new TextFormat("Tahoma", "20", 0x00ff00, true);
+		static private var _dnasTitle:TextField = new TextField();
+		static private var _skillsDie:TextField = new TextField();
+		
+		static private var _format:TextFormat = new TextFormat("Tahoma", "18", 0xffaa00, true);
 		static private const _HEALTH_:String = "HEALTH: ";
 		static private const _YELLOWS_:String = "YELLOW THINGS: ";
+		static public const _DNAEXT_:String = "DNA EXTRACTORS: ";
+		static public var _dnasPicked:int = 0;
 		
 		static private var _yellowsTotal:int = 0;
 		static private var _yellowsPicked:int = 0;
 		
-		private var _menuShown:Boolean = false;
-		private var _interactMenu:InteractMenu;
+		static private var _messages:Vector.<TxtMessage>;
+		
+		static private var _i:GameHUD;
+		static private var _skillFormat:TextFormat = new TextFormat("Tahoma", 16, 0xffffff, true);
 		
 		public function GameHUD()
 		{
+			_messages = new Vector.<TxtMessage>();
 			_healthTitle.autoSize = TextFieldAutoSize.LEFT;
 			_yellowsTitle.autoSize = TextFieldAutoSize.LEFT;
+			_dnasTitle.autoSize = TextFieldAutoSize.LEFT;
+			_skillsDie.autoSize = TextFieldAutoSize.LEFT;
+			
+			_skillsDie.border = true;
+			_skillsDie.background = true;
+			_skillsDie.backgroundColor = 0x000000;
+			_skillsDie.visible = false;
+			addChild(_skillsDie);
 			
 			health(1, 1);
 			addChild(_healthTitle);
-			_yellowsTitle.y = _healthTitle.height;
+			_yellowsTitle.y = 25;
 			addChild(_yellowsTitle);
+			_dnasTitle.y = 50;
+			addChild(_dnasTitle);
+			
+			_i = this;
+			
+			Input.addKeyboardHook(keyboardHook);
+		}
 		
-		/*_interactMenu = new InteractMenu();
-		   _interactMenu.x = (640 - _interactMenu.width) / 2;
-		   _interactMenu.y = (480 - _interactMenu.height) / 2;
-		   _interactMenu.visible = false;
-		   addChild(_interactMenu);
+		public static function showHints():void
+		{
+			_i.addChild(new GameHint(new Assets.hint001, new GameHint(new Assets.hint002, new GameHint(new Assets.hint003, new GameHint(new Assets.hint004, null)))));
+		}
 		
-		 Input.addKeyboardHook(onKeyDown);*/
+		private function keyboardHook(keyCode:int):void
+		{
+			if (keyCode == Keyboard.BACKQUOTE)
+			{
+				GameHUD.showSkills = !GameHUD.showSkills;
+			}
+		}
+		
+		static public function set showSkills(val:Boolean):void
+		{
+			if (val)
+			{
+				var p:Player = GameMap.Instance.player;
+				
+				_skillsDie.text = "SKILLS:\n\nSwimming:\t" + p.skillSwimming + "\n" + "Flying:\t" + p.skillFlying + "\n" + "Walking: " + p.skillWalking + "\n" + "Jumping: " + p.skillJumping + "\n" + "Water breathing: " + p.skillWaterbreathing + "\n" + "Air breathing: " + p.skillAirBreathing;
+				_skillsDie.setTextFormat(_skillFormat);
+				_skillsDie.x = (640 - _skillsDie.width) / 2;
+				_skillsDie.y = (480 - _skillsDie.height) / 2;
+			}
+			
+			_skillsDie.visible = val;
+		}
+		
+		static public function get showSkills():Boolean
+		{
+			return _skillsDie.visible;
 		}
 		
 		static public function setYellowsCount(cnt:int):void
 		{
-			_yellowsTotal = cnt;		
-			yellowPickup();
-		}
-		
-		private function onKeyDown(key:int):void
-		{
-			if (key == Keyboard.SPACE)
-			{
-				if (!_menuShown)
-				{
-					_interactMenu.visible = true;
-					_menuShown = true;
-					GameMain.pause = true;
-					stage.focus = _interactMenu;
-				}
-				else
-				{
-					_interactMenu.visible = false;
-					_menuShown = false;
-					GameMain.pause = false;
-					stage.focus = GameMain.Inst;
-				}
-			}
+			_yellowsTotal = cnt;
+			//yellowPickup();
 		}
 		
 		public static function yellowPickup(cnt:int = 0):void
@@ -77,77 +105,122 @@ package Game
 			_yellowsTitle.setTextFormat(_format);
 		}
 		
+		public static function dnasPickup(cnt:int = 0):void
+		{
+			_dnasPicked += cnt;
+			_dnasTitle.text = _DNAEXT_ + _dnasPicked;
+			_dnasTitle.setTextFormat(_format);
+		}
+		
 		public static function health(newHealth:Number, totalHealth:Number):void
 		{
 			_healthTitle.text = _HEALTH_ + Math.floor((newHealth / totalHealth) * 100) + '%';
 			_healthTitle.setTextFormat(_format);
 		}
+		
+		public static function message(txt:String):void
+		{
+			var newMsg:TxtMessage = new TxtMessage(txt);
+			for (var i:int = 0; i < _messages.length; i++)
+			{
+				_messages[i].y -= newMsg.length;
+			}
+			newMsg.y = 480 - newMsg.height;
+			_i.addChild(newMsg);
+			_messages.push(newMsg);
+			Snd.I.play("msg");
+		}
+		
+		public static function update():void
+		{
+			for (var i:int = _messages.length - 1; i >= 0; i--)
+			{
+				if (_messages[i].alpha <= 0)
+				{
+					_messages.splice(i, 1);
+				}
+				else
+					_messages[i].update();
+			}
+		}
 	
 	}
 
 }
-import flash.display.SimpleButton;
+import flash.display.Bitmap;
+import flash.display.BitmapData;
 import flash.display.Sprite;
-import flash.events.KeyboardEvent;
+import flash.events.Event;
 import flash.events.MouseEvent;
 import flash.text.TextField;
 import flash.text.TextFieldAutoSize;
 import flash.text.TextFormat;
+import Game.GameMain;
 
-class InteractMenu extends Sprite
+class TxtMessage extends TextField
 {
-	private var _btnMate:InteractMenuItem = new InteractMenuItem("MATE");
-	private var _btnFight:InteractMenuItem = new InteractMenuItem("FIGHT");
+	private var _format:TextFormat;
 	
-	public function InteractMenu():void
+	function TxtMessage(initText:String, format:TextFormat = null):void
 	{
-		super();
-		graphics.beginFill(0xaaaaaa);
-		graphics.drawRect(0, 0, 250, 150);
-		graphics.endFill();
+		autoSize = TextFieldAutoSize.LEFT;
+		if (_format == null)
+		{
+			_format = new TextFormat("Tahoma", 16, 0xff0000, true);
+		}
+		else
+			_format = format;
 		
-		_btnMate.x = 20;
-		_btnMate.y = 20;
-		
-		_btnFight.x = 20;
-		_btnFight.y = _btnMate.y + _btnMate.height + 20;
-		
-		addChild(_btnMate);
-		addChild(_btnFight);
-		
-		_btnMate.addEventListener(MouseEvent.MOUSE_DOWN, onMate);
-		_btnFight.addEventListener(MouseEvent.MOUSE_DOWN, onFight);
+		text = initText;
+		setTextFormat(_format);
 	}
 	
-	private function onMate(e:MouseEvent):void
+	override public function get text():String
 	{
-		trace('mate');
+		return super.text;
 	}
 	
-	private function onFight(e:MouseEvent):void
+	override public function set text(value:String):void
 	{
-		trace('fight');
+		super.text = value;
+		setTextFormat(_format);
+	}
+	
+	public function update():void
+	{
+		alpha -= 0.003;
 	}
 }
 
-class InteractMenuItem extends SimpleButton
+class GameHint extends Sprite
 {
-	private var _txtUp:TextField = new TextField();
-	private var _txtOv:TextField = new TextField();
+	private var _next:GameHint;
 	
-	private var _tfUp:TextFormat = new TextFormat("Tahoma", 25, 0x0, true);
-	private var _tfOv:TextFormat = new TextFormat("Tahoma", 25, 0xff0000, true);
-	
-	public function InteractMenuItem(text:String):void
+	function GameHint(image:Bitmap, next:GameHint = null):void
 	{
-		_txtOv.autoSize = TextFieldAutoSize.LEFT;
-		_txtOv.text = text;
-		_txtOv.setTextFormat(_tfOv);
-		
-		_txtUp.autoSize = TextFieldAutoSize.LEFT;
-		_txtUp.text = text;
-		_txtUp.setTextFormat(_tfUp);
-		
-		super(_txtUp, _txtOv);
+		addChild(image);
+		addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
+		addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+		_next = next;
+	}
+	
+	private function onAddedToStage(e:Event):void
+	{
+		removeEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+		x = (640 - width) / 2;
+		y = (480 - height) / 2;
+		GameMain.pause = true;
+	}
+	
+	private function onMouseDown(e:MouseEvent):void
+	{
+		if (_next != null)
+			parent.addChild(_next);
+		else
+		{
+			GameMain.pause = false;
+			stage.focus = GameMain.Inst;
+		}
+		parent.removeChild(this);
 	}
 }

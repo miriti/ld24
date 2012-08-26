@@ -23,9 +23,14 @@ package Game
 		
 		public function MapCollisionObject(cwidth:Number, cheight:Number)
 		{
+			setCollisionBounds(cwidth, cheight);
+			mp = GameMap.Instance;
+		}
+		
+		protected function setCollisionBounds(cwidth:Number, cheight:Number):void
+		{
 			_width = cwidth;
 			_height = cheight;
-			mp = GameMap.Instance;
 		}
 		
 		private function _collision(t:Tile, side:int):void
