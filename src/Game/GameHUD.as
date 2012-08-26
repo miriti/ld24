@@ -101,8 +101,15 @@ package Game
 		public static function yellowPickup(cnt:int = 0):void
 		{
 			_yellowsPicked += cnt;
-			_yellowsTitle.text = _YELLOWS_ + _yellowsPicked + ' / ' + _yellowsTotal;
-			_yellowsTitle.setTextFormat(_format);
+			if (_yellowsPicked == _yellowsTotal)
+			{
+				GameMain.Inst.gameWin();
+			}
+			else
+			{
+				_yellowsTitle.text = _YELLOWS_ + _yellowsPicked + ' / ' + _yellowsTotal;
+				_yellowsTitle.setTextFormat(_format);
+			}
 		}
 		
 		public static function dnasPickup(cnt:int = 0):void

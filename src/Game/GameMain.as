@@ -31,6 +31,30 @@ package Game
 			
 			new Snd();
 			
+			gameStart();
+		
+		}
+		
+		public function gameOver():void
+		{
+			removeChild(_surfaceBmp);
+			removeChild(_gameHUD);
+			removeEventListener(Event.ENTER_FRAME, onRender);
+			
+			addChild(new Assets.bmpGameOver());
+		}
+		
+		public function gameWin():void
+		{
+			removeChild(_surfaceBmp);
+			removeChild(_gameHUD);
+			removeEventListener(Event.ENTER_FRAME, onRender);
+			
+			addChild(new Assets.bmpWin());
+		}
+		
+		public function gameStart():void
+		{
 			_surfaceBmp = new Bitmap(_renderSurface);
 			_gameHUD = new GameHUD();
 			
@@ -46,15 +70,6 @@ package Game
 			_lastTime = new Date().getTime();
 			
 			focusRect = false;
-		}
-		
-		public function gameOver():void
-		{
-			removeChild(_surfaceBmp);
-			removeChild(_gameHUD);
-			removeEventListener(Event.ENTER_FRAME, onRender);
-			
-			addChild(new Assets.bmpGameOver());
 		}
 		
 		private function onRender(e:Event):void

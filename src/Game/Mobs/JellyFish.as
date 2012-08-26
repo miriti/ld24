@@ -21,6 +21,7 @@ package Game.Mobs
 			_currentAnimation = 0;
 			_sinPhase = Math.random() * (Math.PI * 4);
 			_skillWaterbreathing = 3;
+			_skillSwimming = 4;
 		}
 		
 		override protected function dnaExtracting():void 

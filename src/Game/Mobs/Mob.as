@@ -4,6 +4,7 @@ package Game.Mobs
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.ui.Keyboard;
 	import Game.GameAnimSprite;
 	import Game.GameMain;
 	import Game.GameMap;
@@ -86,14 +87,27 @@ package Game.Mobs
 			{
 				if (t is TileGround)
 				{
-					if (_mode == MODE_FLYING)
+					if (mode == MODE_FLYING)
 					{
-						_mode = MODE_GROUND;
+						mode = MODE_GROUND;
+					}
+				}
+				
+				if (t is TileWater)
+				{
+					if (mode == MODE_FLYING)
+					{
+						inJump = false;
+						mode = MODE_SWIMMING;
 					}
 				}
 				
 				_ySpeed = 0;
-				_inJump = false;
+				
+				if (mode != MODE_SWIMMING)
+				{
+					inJump = false;
+				}
 			}
 			else if (side == SIDE_TOP)
 			{
@@ -110,7 +124,7 @@ package Game.Mobs
 			if (!_inJump)
 			{
 				_ySpeed = -(JUMP_POWER + (_skillJumping / 2));
-				_inJump = true;
+				inJump = true;
 			}
 		}
 		
@@ -138,7 +152,7 @@ package Game.Mobs
 			{
 				if (t is TileWater)
 				{
-					_mode = MODE_SWIMMING;
+					mode = MODE_SWIMMING;
 					Snd.I.play("splash");
 				}
 			}
@@ -149,28 +163,27 @@ package Game.Mobs
 			if (_skillFlying > 0)
 			{
 				if (Input.isLeft())
-					_xSpeed -= (dt / 1000) * 25;
+					_xSpeed -= (dt / 1000) * (15 + _skillFlying);
 				if (Input.isRight())
-					_xSpeed += (dt / 1000) * 25;
+					_xSpeed += (dt / 1000) * (15 + _skillFlying);
 				if (Input.isUp())
-					_ySpeed -= (dt / 1000) * 25;
+					_ySpeed -= (dt / 1000) * (15 + _skillFlying);
 				if (Input.isDown())
-					_ySpeed += (dt / 1000) * 25;
+					_ySpeed += (dt / 1000) * (15 + _skillFlying);
 			}
-			else
-			{
-				if (_skillAirBreathing < 5)
-					health -= 1 * ((5 - _skillAirBreathing) / 5);
-				if (_skillAirBreathing > 10)
-					health += 0.01 * (dt / 33);
-			}
+			
+			if (_skillAirBreathing < 5)
+				health -= 1 * ((5 - _skillAirBreathing) / 5);
+			if (_skillAirBreathing > 10)
+				health += 0.01 * (dt / 33);
 			
 			var t:Tile = m.getTilePoint(m.getCell(_pos.x, _pos.y));
 			if (t != null)
 			{
 				if (t is TileWater)
 				{
-					_mode = MODE_SWIMMING;
+					mode = MODE_SWIMMING;
+					inJump = false;
 					Snd.I.play("splash");
 				}
 			}
@@ -200,12 +213,12 @@ package Game.Mobs
 			{
 				if (t == null)
 				{
-					_mode = MODE_GROUND;
-					_inJump = true;
+					mode = MODE_GROUND;
+					inJump = true;
 					Snd.I.play("splash");
 				}
 				else if (t is TileGround)
-					_mode = MODE_GROUND;
+					mode = MODE_GROUND;
 			}
 		}
 		
@@ -258,7 +271,7 @@ package Game.Mobs
 			{
 				var t:Tile = m.getTilePoint(m.getCell(_pos.x, _pos.y));
 				var g:Number = t != null ? t.gravity : Tile.AIR_GRAVITY;
-				var f:Number = t != null ? t.friction : _mode == MODE_GROUND ? TileGround.GROUND_FRICTION : Tile.AIR_FRICTION;
+				var f:Number = t != null ? t.friction : mode == MODE_GROUND ? TileGround.GROUND_FRICTION : Tile.AIR_FRICTION;
 				
 				if (Math.abs(_xSpeed) > X_SPEED_MAX)
 				{
@@ -297,10 +310,13 @@ package Game.Mobs
 				
 				if (_ySpeed > MAX_FALL_SPEED)
 					_ySpeed = MAX_FALL_SPEED;
+				
 				var _oy:Number = y;
 				y += _ySpeed;
-				if (y - _oy == _ySpeed)
-					_inJump = true;
+				
+				if (mode == MODE_GROUND)
+					if (y - _oy == _ySpeed)
+						inJump = true;
 			}
 		}
 		
@@ -432,6 +448,26 @@ package Game.Mobs
 		public function set skillFlying(value:Number):void
 		{
 			_skillFlying = value;
+		}
+		
+		public function get inJump():Boolean
+		{
+			return _inJump;
+		}
+		
+		public function set inJump(value:Boolean):void
+		{
+			_inJump = value;
+		}
+		
+		public function get mode():int 
+		{
+			return _mode;
+		}
+		
+		public function set mode(value:int):void 
+		{
+			_mode = value;
 		}
 	}
 

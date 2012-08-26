@@ -30,7 +30,7 @@ package Game.Mobs
 			GameMap.Instance.player.skillWalking += 2.5;
 			
 			if (GameMap.Instance.player.skillWalking > 7)
-				GameMap.Instance.player.skillFlying = Math.floor(Math.random() * 2);
+				GameMap.Instance.player.skillFlying += Math.floor(Math.random() * 2);
 			
 			super.dnaExtracting();
 		}

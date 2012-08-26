@@ -12,6 +12,12 @@ package
 		[Embed(source="../assets/game-over.png")]
 		static public var bmpGameOver:Class;
 		
+		[Embed(source="../assets/win.png")]
+		static public var bmpWin:Class;
+		
+		[Embed(source="../assets/intro.png")]
+		static public var bmpIntro:Class;
+		
 		[Embed(source="../assets/hints/001.png")]
 		static public var hint001:Class;
 		
@@ -42,11 +48,17 @@ package
 		static public var objDnaStrike:Class;
 		
 		// Mobs
+		[Embed(source="../assets/mobs/player/ev0.png")]
+		static public var mobPlayerEv0:Class;
+		
+		[Embed(source="../assets/mobs/player/evW.png")]
+		static public var mobPlayerEvW:Class;
+		
+		[Embed(source="../assets/mobs/player/evF.png")]
+		static public var mobPlayerEvF:Class;
+		
 		[Embed(source="../assets/mobs/frog/frog.png")]
 		static public var mobFrog:Class;
-		
-		[Embed(source="../assets/mobs/test-mob.png")]
-		static public var mobTest:Class;
 		
 		[Embed(source="../assets/mobs/JellyFish/jellyfish.png")]
 		static public var mobJellyFish:Class;

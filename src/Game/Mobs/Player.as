@@ -1,6 +1,7 @@
 package Game.Mobs
 {
 	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.geom.Point;
 	import flash.ui.Keyboard;
 	import Game.GameAnimSprite;
@@ -17,11 +18,22 @@ package Game.Mobs
 	{
 		private var _dnaStrike:DnaStrike = new DnaStrike();
 		
+		private var _anim0:GameAnimSprite;
+		private var _animW:GameAnimSprite;
+		private var _animF:GameAnimSprite;
+		
+		private var _renderData:BitmapData = new BitmapData(32, 32);
+		
 		public function Player()
 		{
 			super(32, 13);
-			_animations.push(new GameAnimSprite((new Assets.mobTest() as Bitmap).bitmapData, new Point(32, 13), 50));
-			_currentAnimation = 0;
+			_anim0 = new GameAnimSprite((new Assets.mobPlayerEv0() as Bitmap).bitmapData, new Point(32, 13), 50);
+			_animW = new GameAnimSprite((new Assets.mobPlayerEvW() as Bitmap).bitmapData, new Point(32, 20));
+			_animF = new GameAnimSprite((new Assets.mobPlayerEvF() as Bitmap).bitmapData, new Point(32, 13));
+			_animF.frameMax = 0;
+			//_animW
+			//_animations.push();
+			//_currentAnimation = 0;
 			_controlled = true;
 			_health = 100;
 			_healthMax = 100;
@@ -30,10 +42,24 @@ package Game.Mobs
 			_skillWaterbreathing = 10;
 			_skillWalking = 0;
 			_skillAirBreathing = 0;
+			_skillFlying = 0;
+			_skillAirBreathing = 0;
 			
 			_useWorldConsts = true;
 			
 			Input.addKeyboardHook(keyboardHook);
+		}
+		
+		override public function render():BitmapData
+		{
+			_renderData.fillRect(_renderData.rect, 0x00000000);
+			_renderData.draw(_anim0.render());
+			if (_skillWalking >= 5)
+				_renderData.draw(_animW.render());
+			
+			if (_skillFlying >= 1)
+				_renderData.draw(_animF.render());
+			return _renderData;
 		}
 		
 		private function keyboardHook(keyCode:int):void
@@ -49,6 +75,32 @@ package Game.Mobs
 					}
 				}
 			}
+			
+			if (_mode != MODE_FLYING)
+			{
+				if ((keyCode == Keyboard.UP) || (keyCode == Keyboard.W))
+				{
+					if (_inJump)
+					{
+						if (_skillFlying >= 1)
+							mode = MODE_FLYING;
+					}
+				}
+			}
+		}
+		
+		override public function get mode():int
+		{
+			return super.mode;
+		}
+		
+		override public function set mode(value:int):void
+		{
+			if (value == MODE_FLYING)
+				_animF.frameMax = 1;
+			if ((mode == MODE_FLYING) && (value != MODE_FLYING))
+				_animF.frameMax = 0;
+			super.mode = value;
 		}
 		
 		override public function update(deltaTime:Number):void
@@ -58,7 +110,16 @@ package Game.Mobs
 				_dnaStrike.setPos(x + width, y - 10);
 			else
 				_dnaStrike.setPos(x - _dnaStrike.width, y - 10);
+			
+			_anim0.update(deltaTime);
+			_animW.update(deltaTime);
+			_animF.update(deltaTime);
 			super.update(deltaTime);
+			
+			if (_xSpeed == 0)
+				_animW.frameMax = 0;
+			else
+				_animW.frameMax = 2;
 		}
 		
 		override public function get health():Number
@@ -87,8 +148,11 @@ package Game.Mobs
 		override public function set skillFlying(value:Number):void
 		{
 			GameHUD.message("Flying skill +" + (value - _skillFlying).toString());
-			if ((_skillFlying < 5) && (value >= 5))
+			if ((_skillFlying < 1) && (value >= 1))
+			{
 				GameHUD.message("EVOLUTION: Now you can FLY!");
+				GameHUD.message("HINT: Press [W] or [UP] while jumping to start fly!");
+			}
 			super.skillFlying = value;
 		}
 		
@@ -131,7 +195,10 @@ package Game.Mobs
 		{
 			GameHUD.message("Walking skill +" + (value - _skillWalking).toString());
 			if ((_skillWalking < 5) && (value >= 5))
+			{
 				GameHUD.message("EVOLUTION: Now you can walk!");
+				_height = 20;
+			}
 			super.skillWalking = value;
 		}
 		
